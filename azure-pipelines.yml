@@ -1,0 +1,35 @@
+trigger:
+- main
+
+jobs:
+
+- job: 'Test'
+  pool:
+    name: TestPool
+
+  steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 3.9'
+    inputs:
+      versionSpec: '$(Parameters.versionSpec)'
+
+  - script: |
+     python -m pip install --upgrade pip
+     pip install robotframework
+     pip install robotframework-appiumlibrary
+     pwd
+    displayName: 'Install Plugins'
+
+  - script: 'robot -d TestResults .\Tests\StartApp.robot'
+    displayName: 'Run Robot Tests'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Pipeline Artifact'
+    inputs:
+      targetPath: '$(Pipeline.Workspace)\TestResults'
+      artifact: 'Test_Reports'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results **/TEST-*.xml'
+    inputs:
+      testResultsFormat: NUnit
